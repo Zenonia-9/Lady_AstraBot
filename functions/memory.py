@@ -1,5 +1,6 @@
 import sqlite3
-from datetime import datetime, timedelta
+
+from datetime import datetime, timezone, timedelta
 from config import MEMORY_FILE
 
 class ConversationMemory:
@@ -23,8 +24,8 @@ class ConversationMemory:
     def save_message(self, user_id, fullname, message):
         with sqlite3.connect(self.db_path) as conn:
             conn.cursor().execute('''
-            INSERT INTO messages (user_id, fullname, message) VALUES (?, ?, ?)
-        ''', (user_id, fullname, message))
+            INSERT INTO messages (user_id, fullname, message, timestamp) VALUES (?, ?, ?, ?)
+        ''', (user_id, fullname, message, datetime.now(timezone.utc)))
             conn.commit()
 
     def get_history(self, user_id, limit=10):
@@ -39,7 +40,7 @@ class ConversationMemory:
         rows = c.fetchall()
         return [ {"role": r, "content": m} for r, m in reversed(rows) ]
     
-    def delete_history(self, user_id, delete_type="all", amount=None):
+    def delete_history(self, user_id: int, delete_type="all", amount=None):
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             
@@ -63,7 +64,7 @@ class ConversationMemory:
             
             conn.commit()
 
-    def trim_old_messages(self, days=30):
+    def trim_old_messages(self, days: int=30):
         cutoff = datetime.utcnow() - timedelta(days=days)
         with sqlite3.connect(self.db_path) as conn:
             conn.cursor().execute('''

@@ -49,7 +49,7 @@ async def classify(text: str) -> str:
             continue
     return text.strip()
 
-async def talk_back(user_id: str, user_message: str, username: str, type: str = 'private') -> str:
+async def talk_back(user_id: str, user_message: str, type: str = 'private') -> str:
     # user_message = remove_non_ascii(user_message)
     
     # Save user message
