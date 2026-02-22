@@ -1,26 +1,7 @@
-from dotenv import load_dotenv
 import os
-import sys
-from pathlib import Path
-
-def get_base_dir():
-    # If running as EXE
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent
-    # If running as normal Python script
-    return Path(__file__).resolve().parent
-
-BASE_DIR = get_base_dir()
-
-# Load variables from .env file
-env_path = BASE_DIR / ".env"
-load_dotenv(env_path)
 
 # External folders (beside exe)
-DATA_DIR = BASE_DIR / "data"
-
-# Create folders automatically
-DATA_DIR.mkdir(exist_ok=True)
+DATA_DIR = "/data"
 
 # Get the tokens and bot info
 TELEGRAM_BOT_TOKEN = str(os.getenv("TELEGRAM_BOT_TOKEN"))
