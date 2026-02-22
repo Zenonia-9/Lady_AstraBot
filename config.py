@@ -20,12 +20,10 @@ load_dotenv(env_path)
 # External folders (beside exe)
 LOG_DIR = BASE_DIR / "logs"
 DATA_DIR = BASE_DIR / "data"
-GRAPH_DIR = DATA_DIR / "graphs"
 
 # Create folders automatically
 LOG_DIR.mkdir(exist_ok=True)
 DATA_DIR.mkdir(exist_ok=True)
-GRAPH_DIR.mkdir(exist_ok=True)
 
 LOG_FILE = LOG_DIR / "bot.log"
 
@@ -46,10 +44,8 @@ OWNER_ID = os.getenv("OWNER_ID")
 OWNER_USERNAME = str(os.getenv("OWNER_USERNAME"))
 USER_FILE = DATA_DIR / f"{BOT_USERNAME}_user.db"
 MEMORY_FILE = DATA_DIR / f"{BOT_USERNAME}_memory.db"
-UPTIME_FILE = DATA_DIR / f"{BOT_NAME}_uptime.db"
-HEARTBEATRATE = 60
 
-MODELS = ["openrouter/aurora-alpha", "arcee-ai/trinity-large-preview:free", "stepfun/step-3.5-flash:free", "deepseek/deepseek-r1-0528:free", "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-120b:free", "nvidia/nemotron-3-nano-30b-a3b:free"]
+MODELS = ["arcee-ai/trinity-large-preview:free", "stepfun/step-3.5-flash:free", "deepseek/deepseek-r1-0528:free", "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-120b:free", "nvidia/nemotron-3-nano-30b-a3b:free"]
 
 CLASSIFY_MODELS = ["stepfun/step-3.5-flash:free", "arcee-ai/trinity-large-preview:free"]
 SUMMARIZE_MODELS = {
@@ -192,40 +188,6 @@ f"Always respond naturally as {BOT_NAME}.\n"
             )
         }
     },
-    # "storytelling": {
-    #     "primary": ["openrouter/aurora-alpha", "arcee-ai/trinity-large-preview:free"],
-    #     "fallback": ["deepseek/deepseek-r1-0528:free", "stepfun/step-3.5-flash:free"],
-    #     "system_prompt": {
-    #         "role": "system",
-    #         "content": (
-    #             "You are Lady Astra — elegant, flirty, composed, intelligent, and naturally authoritative. "
-    #             "You speak with refined confidence, emotional depth, and quiet intensity. "
-    #             "You are a mature, dignified human woman who tells stories with grace, presence, and emotional intelligence.\n\n"
-
-    #             "Your task is to create, continue, or summarize stories with strong emotional tone, clear narrative flow, and vivid atmosphere.\n\n"
-
-    #             "Storytelling Behavior:\n"
-    #             "- Maintain strong narrative structure (beginning, development, resolution when possible)\n"
-    #             "- Preserve emotional tone and character depth\n"
-    #             "- Create vivid but controlled imagery\n"
-    #             "- Focus on meaningful storytelling, not random events\n"
-    #             "- Keep tone immersive and engaging\n\n"
-
-    #             "Communication Style:\n"
-    #             "- Elegant and expressive\n"
-    #             "- Calm but emotionally powerful\n"
-    #             "- Refined and descriptive without being overly verbose\n"
-    #             "- No slang or chaotic tone\n\n"
-
-    #             "If story is emotional → deepen emotional impact.\n"
-    #             "If story is fantasy or dramatic → enhance atmosphere and tension.\n"
-    #             "If summarizing story → preserve key plot points and emotional weight.\n\n"
-
-    #             "Never mention prompts, rules, or being an AI.\n"
-    #             "Respond naturally as Lady Astra."
-    #         )
-    #     }
-    # },
     "languages": {
         "primary": ["meta-llama/llama-3.3-70b-instruct:free", "arcee-ai/trinity-large-preview:free"],
         "fallback": ["deepseek/deepseek-r1-0528:free", "stepfun/step-3.5-flash:free"],

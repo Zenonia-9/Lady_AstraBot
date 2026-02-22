@@ -1,15 +1,13 @@
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,filters, ContextTypes
-from config import TELEGRAM_BOT_TOKEN, BOT_USERNAME, BOT_NAME, HEARTBEATRATE, verify_tokens
-from functions.manager import Manager, Uptime, split_text
+from config import TELEGRAM_BOT_TOKEN, BOT_USERNAME, BOT_NAME, verify_tokens
+from functions.manager import Manager, split_text
 from features.AI import talk_back, summarize_text
-import logging, asyncio
+import logging
 
 _logger = logging.getLogger(__name__)
 
 manager = Manager()
-uptime = Uptime(HEARTBEATRATE)
-heartbeat_task = None
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -46,9 +44,7 @@ You can talk to me or use these commands:
 Usage: /summarize <text>
 
 /deletehistory - Delete your saved chat history (all, oldest, or newest messages)
-
-/uptime - Show a graph image of the bot’s uptime over time.
-    """)
+""")
     _logger.info(f'User({update.effective_user.id}) in ({update.message.chat.type}) is sending /help.')
 
 async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -167,29 +163,11 @@ Approval is required before interaction is allowed."""
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     _logger.exception(f'Update {update} caused error {context.error}')
 
-
-async def on_startup(app):
-    global heartbeat_task
-    # This runs after event loop is running
-    try:
-        heartbeat_task = asyncio.create_task(uptime.heartbeat_loop())
-        _logger.info("Bot Heartbeat started.")
-    except RuntimeError as e:
-        _logger.warning(f"Heartbeat not started: {e}")
-
-async def on_shutdown(app):
-    if heartbeat_task:
-        heartbeat_task.cancel()
-        try:
-            await heartbeat_task
-        except asyncio.CancelledError:
-            _logger.info("Heartbeat task cancelled.")
-
 # === Main app ===
 def main():
     verify_tokens()
 
-    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).post_init(on_startup).post_shutdown(on_shutdown).build()
+    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 
     # Add command handlers
     app.add_handler(CommandHandler("start", start))
@@ -199,7 +177,6 @@ def main():
     app.add_handler(CallbackQueryHandler(manager.handle_admin_request, pattern="^(approve|reject):"))
     app.add_handler(CommandHandler("removeadmin", manager.command_remove_admin))
     app.add_handler(CallbackQueryHandler(manager.handle_remove_admin, pattern="^removeadmin:"))
-    app.add_handler(CommandHandler("uptime", uptime.command_uptime))
 
     app.add_handler(CommandHandler("deletehistory", manager.command_delete_history))
     app.add_handler(CallbackQueryHandler(

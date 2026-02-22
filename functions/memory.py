@@ -71,8 +71,3 @@ class ConversationMemory:
             DELETE FROM messages WHERE timestamp < ?
         ''', (cutoff.isoformat(),))
             conn.commit()
-
-# Usage Example:
-# memory = ConversationMemory()
-# memory.save_message("123456", "user", "Hi Minji")
-# memory.get_history("123456")

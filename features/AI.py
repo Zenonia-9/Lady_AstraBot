@@ -17,7 +17,7 @@ memory = ConversationMemory()
 
 # Schedule cleanup of old messages every day
 scheduler = BackgroundScheduler()
-scheduler.add_job(lambda: memory.trim_old_messages(days=15), 'interval', hours=1)
+scheduler.add_job(lambda: memory.trim_old_messages(days=15), 'interval', hours=24)
 scheduler.start()
 
 def remove_non_ascii(text):
@@ -50,8 +50,6 @@ async def classify(text: str) -> str:
     return text.strip()
 
 async def talk_back(user_id: str, user_message: str, type: str = 'private') -> str:
-    # user_message = remove_non_ascii(user_message)
-    
     # Save user message
     memory.save_message(user_id, 'user', user_message)
 
