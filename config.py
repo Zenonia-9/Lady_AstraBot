@@ -10,8 +10,8 @@ BOT_NAME = str(os.getenv("BOT_NAME"))
 BOT_USERNAME = str(os.getenv("BOT_USERNAME"))
 OWNER_ID = os.getenv("OWNER_ID")
 OWNER_USERNAME = str(os.getenv("OWNER_USERNAME"))
-USER_FILE = DATA_DIR / f"{BOT_USERNAME}_user.db"
-MEMORY_FILE = DATA_DIR / f"{BOT_USERNAME}_memory.db"
+USER_FILE = f"{DATA_DIR}/{BOT_USERNAME}_user.db"
+MEMORY_FILE = f"{DATA_DIR}/{BOT_USERNAME}_memory.db"
 
 MODELS = ["arcee-ai/trinity-large-preview:free", "stepfun/step-3.5-flash:free", "deepseek/deepseek-r1-0528:free", "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-120b:free", "nvidia/nemotron-3-nano-30b-a3b:free"]
 
