@@ -3,9 +3,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Cal
 from config import TELEGRAM_BOT_TOKEN, BOT_USERNAME, BOT_NAME, verify_tokens
 from functions.manager import Manager, split_text
 from features.AI import talk_back, summarize_text
-import logging
 
-_logger = logging.getLogger(__name__)
 
 manager = Manager()
 
@@ -23,7 +21,7 @@ Once approved, you may speak with me freely and use my features.
 
 Use /help to see available commands."""
     )
-    _logger.info(f'User({user.id}) in ({update.message.chat.type}) is sending /start.')
+    print(f'User({user.id}) in ({update.message.chat.type}) is sending /start.')
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -45,13 +43,13 @@ Usage: /summarize <text>
 
 /deletehistory - Delete your saved chat history (all, oldest, or newest messages)
 """)
-    _logger.info(f'User({update.effective_user.id}) in ({update.message.chat.type}) is sending /help.')
+    print(f'User({update.effective_user.id}) in ({update.message.chat.type}) is sending /help.')
 
 async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     manager.upsert_user(user.id, user.username, user.full_name)
 
-    _logger.info(f'User({user.id}) request to summrize.')
+    print(f'User({user.id}) request to summrize.')
     await update.message.chat.send_action(action="typing")
 
     if update.message.reply_to_message:
@@ -61,7 +59,7 @@ async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Case 2: User passed the text directly
         args = context.args
         if not args:
-            _logger.info('Rejecting a summarize request because of wrong format!')
+            print('Rejecting a summarize request because of wrong format!')
             await update.message.reply_text("Please either reply to a message or add the text like:\n/summarize your text here", parse_mode="Markdown")
             return
         original_text = " ".join(args)
@@ -70,7 +68,7 @@ async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     summary = await summarize_text(original_text)
 
-    _logger.info('Bot replied!')
+    print('Bot replied!')
     await update.message.reply_text(f"📚 Summary:\n{summary}")
 
 async def welcome_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -79,8 +77,8 @@ async def welcome_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         username = new_user.username
         name = new_user.full_name
 
-        _logger.info(user_id == str(context.bot.id))
-        _logger.info(f'({user_id}) : ({str(context.bot.id)})')
+        print(user_id == str(context.bot.id))
+        print(f'({user_id}) : ({str(context.bot.id)})')
 
         if user_id == str(context.bot.id):
             await context.bot.send_message(update.effective_chat.id, f"""🌸 Greetings. I am {BOT_NAME}.
@@ -152,16 +150,16 @@ Please send /userrequest to request access.
 Approval is required before interaction is allowed."""
     
     if len(response) > 4000:
-        _logger.info("Reply too long, splliting into chunks")
+        print("Reply too long, splliting into chunks")
 
     for chunk in split_text(response):
         try:
             await update.message.reply_text(chunk, parse_mode="Markdown")
         except Exception as e:
-            _logger.exception(f"Failed to send Telegram message: {e}")  
+            print(f"Failed to send Telegram message: {e}")  
 
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    _logger.exception(f'Update {update} caused error {context.error}')
+    print(f'Update {update} caused error {context.error}')
 
 # === Main app ===
 def main():
@@ -196,7 +194,7 @@ def main():
     app.add_error_handler(error)
 
     print(f"🤖 {BOT_NAME} is running... waiting for messages 💌")
-    _logger.info(f"{BOT_NAME} is running... waiting for messages")
+    print(f"{BOT_NAME} is running... waiting for messages")
     
     app.run_polling(poll_interval=5)
 

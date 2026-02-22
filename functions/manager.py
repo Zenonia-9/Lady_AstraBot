@@ -1,13 +1,10 @@
 import sqlite3
 
-import logging
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import OWNER_ID, OWNER_USERNAME, USER_FILE, BOT_NAME
 from functions.memory import ConversationMemory
 
-_logger = logging.getLogger(__name__)
 memory = ConversationMemory()
 
 def split_text(text: str, limit: int=4000) -> list:
@@ -67,14 +64,14 @@ class Manager:
                     "UPDATE users SET username = ?, full_name = ? WHERE user_id = ?",
                     (username, full_name, user_id)
                 )
-                _logger.info(f"Updated user: {full_name}")
+                print(f"Updated user: {full_name}")
             else:
                 # Insert new user
                 cursor.execute(
                     "INSERT INTO users (user_id, username, full_name, role) VALUES (?, ?, ?, ?)",
                     (user_id, username, full_name, role)
                 )
-                _logger.info(f"Inserted new user: {full_name}")
+                print(f"Inserted new user: {full_name}")
 
             conn.commit()
     

@@ -3,9 +3,6 @@ from openai import OpenAI
 from config import OPENROUTER_API_KEY, TOPIC_MODELS, SUMMARIZE_MODELS, CLASSIFY_MODELS, BOT_USERNAME, BOT_NAME
 
 from apscheduler.schedulers.background import BackgroundScheduler
-import logging
-
-_logger = logging.getLogger(__name__)
 
 # Set up OpenRouter client
 client = OpenAI(
@@ -66,7 +63,7 @@ async def talk_back(user_id: str, user_message: str, type: str = 'private') -> s
     input_msg.insert(0, system_prompt)
 
     for model in models:
-        _logger.info(f'Topic: {category}\nUsed Model: {model}')
+        print(f'Topic: {category}\nUsed Model: {model}')
         try:
             completion = client.chat.completions.create(
                 model=model,
@@ -84,7 +81,7 @@ async def talk_back(user_id: str, user_message: str, type: str = 'private') -> s
             if not reply:
                 raise ValueError("Model returned empty response")  # triggers except block
             
-            _logger.info("Bot replied.")
+            print("Bot replied.")
             return reply
 
         except Exception as e:
@@ -103,7 +100,7 @@ async def summarize_text(text: str) -> str:
     ]
     
     for model in models:
-        _logger.info(f'Topic: Summarizing\nUsed Model: {model}')
+        print(f'Topic: Summarizing\nUsed Model: {model}')
         try:
             completion = client.chat.completions.create(
                 model=model,

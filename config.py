@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
-import logging
 
 def get_base_dir():
     # If running as EXE
@@ -18,22 +17,10 @@ env_path = BASE_DIR / ".env"
 load_dotenv(env_path)
 
 # External folders (beside exe)
-LOG_DIR = BASE_DIR / "logs"
 DATA_DIR = BASE_DIR / "data"
 
 # Create folders automatically
-LOG_DIR.mkdir(exist_ok=True)
 DATA_DIR.mkdir(exist_ok=True)
-
-LOG_FILE = LOG_DIR / "bot.log"
-
-# Configure logging
-logging.basicConfig(
-    filename=str(LOG_FILE),  # log file path
-    filemode="a",             # append to file
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    level=logging.INFO        # log INFO and above
-)
 
 # Get the tokens and bot info
 TELEGRAM_BOT_TOKEN = str(os.getenv("TELEGRAM_BOT_TOKEN"))
@@ -262,15 +249,15 @@ f"Always respond naturally as {BOT_NAME}.\n"
 
 def verify_tokens():
     if not TELEGRAM_BOT_TOKEN:
-        logging.exception("Telegram Bot Token is missing or not set.")
+        print("Telegram Bot Token is missing or not set.")
         raise ValueError("⚠️ Telegram Bot Token is missing or not set.")
     
     if not OPENROUTER_API_KEY:
-        logging.exception("Openrouter API Key is missing or not set.")
+        print("Openrouter API Key is missing or not set.")
         raise ValueError("⚠️ Openrouter API Key is missing or not set.")
     
-    logging.info("Tokens loaded securely from .env!")
-    logging.info(f"Bot username: {BOT_USERNAME}")
+    print("Tokens loaded securely from .env!")
+    print(f"Bot username: {BOT_USERNAME}")
 
 
 if __name__ == "__main__":
