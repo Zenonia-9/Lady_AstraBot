@@ -60,7 +60,7 @@ async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         args = context.args
         if not args:
             print('Rejecting a summarize request because of wrong format!')
-            await update.message.reply_text("Please either reply to a message or add the text like:\n/summarize your text here", parse_mode="Markdown")
+            await update.message.reply_text("Please either reply to a message or add the text like:\n/summarize your text here")
             return
         original_text = " ".join(args)
 
@@ -156,7 +156,8 @@ Approval is required before interaction is allowed."""
         try:
             await update.message.reply_text(chunk, parse_mode="Markdown")
         except Exception as e:
-            print(f"Failed to send Telegram message: {e}")  
+            await update.message.reply_text(chunk)  # fallback
+            print(f"bot.handle_message(): Failed to send Telegram message: {e}\nbot.handle_message(): Send fallback plain text.")  
 
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f'Update {update} caused error {context.error}')
@@ -194,7 +195,6 @@ def main():
     app.add_error_handler(error)
 
     print(f"🤖 {BOT_NAME} is running... waiting for messages 💌")
-    print(f"{BOT_NAME} is running... waiting for messages")
     
     app.run_polling(poll_interval=5)
 

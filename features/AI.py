@@ -42,7 +42,7 @@ async def classify(text: str) -> str:
             return completion.choices[0].message.content.strip()
 
         except Exception as e:
-            _logger.warning(f"Classify Model '{model}' failed with error: {e}")
+            print(f"Classify Model '{model}' failed with error: {e}")
             continue
     return text.strip()
 
@@ -85,7 +85,7 @@ async def talk_back(user_id: str, user_message: str, type: str = 'private') -> s
             return reply
 
         except Exception as e:
-            _logger.warning(f"Main Model '{model}' failed with error: {e}")
+            print(f"Main Model '{model}' failed with error: {e}")
             continue
 
     return "I am unable to respond at this moment. Please try again shortly."
@@ -114,7 +114,7 @@ async def summarize_text(text: str) -> str:
             return completion.choices[0].message.content.strip()
 
         except Exception as e:
-            _logger.warning(f"Summarize Model '{model}' failed with error: {e}")
+            print(f"Summarize Model '{model}' failed with error: {e}")
             continue
 
     return "I am unable to complete the summary right now. Please try again in a moment."
