@@ -2,8 +2,6 @@ from functions.memory import ConversationMemory
 from openai import OpenAI
 from config import OPENROUTER_API_KEY, TOPIC_MODELS, SUMMARIZE_MODELS, CLASSIFY_MODELS, BOT_USERNAME, BOT_NAME
 
-from apscheduler.schedulers.background import BackgroundScheduler
-
 # Set up OpenRouter client
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -11,11 +9,6 @@ client = OpenAI(
 )
  
 memory = ConversationMemory()
-
-# Schedule cleanup of old messages every day
-scheduler = BackgroundScheduler()
-scheduler.add_job(lambda: memory.trim_old_messages(days=15), 'interval', hours=24)
-scheduler.start()
 
 def remove_non_ascii(text):
     return text.encode('ascii', 'ignore').decode('ascii')

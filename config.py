@@ -3,6 +3,9 @@ import os
 # External folders (beside exe)
 DATA_DIR = "/data"
 
+PORT = int(os.environ.get("PORT", 8080))
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+
 # Get the tokens and bot info
 TELEGRAM_BOT_TOKEN = str(os.getenv("TELEGRAM_BOT_TOKEN"))
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")

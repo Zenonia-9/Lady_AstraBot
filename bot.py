@@ -1,6 +1,8 @@
+from features import AI
+
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,filters, ContextTypes
-from config import TELEGRAM_BOT_TOKEN, BOT_USERNAME, BOT_NAME, verify_tokens
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+from config import TELEGRAM_BOT_TOKEN, BOT_USERNAME, BOT_NAME, verify_tokens, PORT, WEBHOOK_URL
 from functions.manager import Manager, split_text
 from features.AI import talk_back, summarize_text
 
@@ -162,42 +164,45 @@ Approval is required before interaction is allowed."""
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f'Update {update} caused error {context.error}')
 
-# === Main app ===
-def main():
-    verify_tokens()
 
-    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+verify_tokens()
+
+app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 
     # Add command handlers
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help))
-    app.add_handler(CommandHandler("summarize", summarize_command))
-    app.add_handler(CommandHandler("userrequest", manager.command_admin_request))
-    app.add_handler(CallbackQueryHandler(manager.handle_admin_request, pattern="^(approve|reject):"))
-    app.add_handler(CommandHandler("removeadmin", manager.command_remove_admin))
-    app.add_handler(CallbackQueryHandler(manager.handle_remove_admin, pattern="^removeadmin:"))
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("help", help))
+app.add_handler(CommandHandler("summarize", summarize_command))
+app.add_handler(CommandHandler("userrequest", manager.command_admin_request))
+app.add_handler(CallbackQueryHandler(manager.handle_admin_request, pattern="^(approve|reject):"))
+app.add_handler(CommandHandler("removeadmin", manager.command_remove_admin))
+app.add_handler(CallbackQueryHandler(manager.handle_remove_admin, pattern="^removeadmin:"))
 
-    app.add_handler(CommandHandler("deletehistory", manager.command_delete_history))
-    app.add_handler(CallbackQueryHandler(
+app.add_handler(CommandHandler("deletehistory", manager.command_delete_history))
+app.add_handler(CallbackQueryHandler(
         manager.handle_delete_choice,
         pattern="^del_(all|oldest|newest|cancel)$"
     ))
 
-    app.add_handler(CallbackQueryHandler(
+app.add_handler(CallbackQueryHandler(
         manager.handle_delete_amount,
         pattern="^del_amount_|^del_back$"
     ))
 
-    app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_user))
-    app.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER, goodbye_user))
-    app.add_handler(MessageHandler(filters.TEXT, handle_message))
+app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_user))
+app.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER, goodbye_user))
+app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
-    app.add_error_handler(error)
-
-    print(f"🤖 {BOT_NAME} is running... waiting for messages 💌")
-    
-    app.run_polling(poll_interval=5)
+app.add_error_handler(error)
 
 # === Run the bot ===
 if __name__ == "__main__":
-    main()
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        webhook_url=f"{WEBHOOK_URL}/webhook",
+        url_path="webhook",
+    )
+
+    manager.close()
+    AI.memory.close()

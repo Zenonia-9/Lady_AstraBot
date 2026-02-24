@@ -5,8 +5,6 @@ from telegram.ext import ContextTypes
 from config import OWNER_ID, OWNER_USERNAME, USER_FILE, BOT_NAME
 from functions.memory import ConversationMemory
 
-memory = ConversationMemory()
-
 def split_text(text: str, limit: int=4000) -> list:
     chunks = []
     while len(text) > limit:
@@ -27,7 +25,14 @@ def split_text(text: str, limit: int=4000) -> list:
 class Manager:
     def __init__(self, db_path=USER_FILE):
         self.db_path = db_path
-        self.__init_db()
+        # Open one persistent connection
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        self.conn.execute("PRAGMA journal_mode=WAL;")       # Enable WAL
+        self.conn.execute("PRAGMA synchronous=NORMAL;")     # Faster writes
+        self.conn.execute("PRAGMA foreign_keys=ON;")        # Safety for future
+        self._init_db()
+        
+        # Make sure owner exists
         self.upsert_user(
             user_id=OWNER_ID,
             username=OWNER_USERNAME,
@@ -35,10 +40,8 @@ class Manager:
             role='owner'
         )
 
-    def __init_db(self):
-        with sqlite3.connect(self.db_path) as conn:
-            cur = conn.cursor()
-            cur.execute('''
+    def _init_db(self):
+        self.conn.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id TEXT UNIQUE NOT NULL,
@@ -46,70 +49,68 @@ class Manager:
                 full_name TEXT NOT NULL,
                 role TEXT NOT NULL DEFAULT 'user'
             )
-            ''')
-
-            conn.commit()
+        ''')
+        self.conn.commit()
     
     def upsert_user(self, user_id, username: str, full_name: str, role: str="user"):
         user_id = str(user_id)
-        # Check if user exists
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
-            existing_user = cursor.fetchone()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+        existing_user = cursor.fetchone()
 
-            if existing_user:
-                # Update username and full_name
-                cursor.execute(
-                    "UPDATE users SET username = ?, full_name = ? WHERE user_id = ?",
-                    (username, full_name, user_id)
-                )
-                print(f"Updated user: {full_name}")
-            else:
-                # Insert new user
-                cursor.execute(
-                    "INSERT INTO users (user_id, username, full_name, role) VALUES (?, ?, ?, ?)",
-                    (user_id, username, full_name, role)
-                )
-                print(f"Inserted new user: {full_name}")
+        if existing_user:
+            cursor.execute(
+                "UPDATE users SET username = ?, full_name = ? WHERE user_id = ?",
+                (username, full_name, user_id)
+            )
+            print(f"Updated user: {full_name}")
+        else:
+            cursor.execute(
+                "INSERT INTO users (user_id, username, full_name, role) VALUES (?, ?, ?, ?)",
+                (user_id, username, full_name, role)
+            )
+            print(f"Inserted new user: {full_name}")
 
-            conn.commit()
+        self.conn.commit()
     
     def remove_user(self, user_id):
         user_id = str(user_id)
-        with sqlite3.connect(self.db_path) as conn:
-            conn.cursor().execute('''
-                DELETE FROM users WHERE user_id = ?
-            ''', (user_id,))
-            conn.commit()
+        self.conn.execute('DELETE FROM users WHERE user_id = ?', (user_id,))
+        self.conn.commit()
 
     def update_user_role(self, user_id, new_role: str='user'):
         user_id = str(user_id)
-        with sqlite3.connect(self.db_path) as conn:
-            conn.cursor().execute("UPDATE users SET role = ? WHERE user_id = ?", (new_role, user_id))
-            conn.commit()
+        self.conn.execute(
+            "UPDATE users SET role = ? WHERE user_id = ?",
+            (new_role, user_id)
+        )
+        self.conn.commit()
         return True
 
     def get_user_role(self, user_id):
         user_id = str(user_id)
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT role FROM users WHERE user_id = ?", (user_id,))
-            result = cursor.fetchone()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT role FROM users WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
         return result[0] if result else None
-    
+
     def get_admins(self):
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT user_id, username, full_name FROM users WHERE role = 'admin'")
-            return cursor.fetchall()
-        
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT user_id, username, full_name FROM users WHERE role = 'admin'")
+        return cursor.fetchall()
+
     def is_admin(self, user_id):
         user_id = str(user_id)
-        with sqlite3.connect(self.db_path) as conn:
-            c = conn.cursor()
-            c.execute('SELECT 1 FROM users WHERE user_id = ? AND (role = "admin" OR role = "owner")', (user_id,))
-            return c.fetchone() is not None
+        cursor = self.conn.cursor()
+        cursor.execute(
+            'SELECT 1 FROM users WHERE user_id = ? AND (role = "admin" OR role = "owner")',
+            (user_id,)
+        )
+        return cursor.fetchone() is not None
+    
+    def close(self):
+        """Close connection on shutdown"""
+        self.conn.close()
 
     # Output methods
     async def command_admin_request(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -217,6 +218,8 @@ Once approved, you will be able to interact with {BOT_NAME}."""
         await self.show_delete_menu(update.message)
     
     async def handle_delete_choice(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        memory = ConversationMemory()
+
         query = update.callback_query
         await query.answer()
 
@@ -255,7 +258,11 @@ Once approved, you will be able to interact with {BOT_NAME}."""
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
+        memory.close()
+
     async def handle_delete_amount(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        memory = ConversationMemory()
+
         query = update.callback_query
         await query.answer()
 
@@ -278,3 +285,5 @@ Once approved, you will be able to interact with {BOT_NAME}."""
         await query.edit_message_text(
             f"✨ {amount} messages removed."
         )
+
+        memory.close()
